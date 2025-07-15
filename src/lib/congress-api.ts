@@ -15,6 +15,12 @@ export interface Bill {
     url: string;
     format: string;
   }>;
+  // Raw API fields
+  type?: string;
+  number?: string;
+  actionDate?: string;
+  updateDate?: string;
+  url?: string;
 }
 
 export interface CongressApiResponse {
@@ -44,7 +50,32 @@ export async function fetchBills(congress: number, offset = 0, limit = 20): Prom
       }
     });
 
-    return response.data;
+    // Map the API response to our expected format
+    const bills = response.data.bills.map((bill: Record<string, unknown>) => {
+      const latestAction = bill.latestAction as Record<string, unknown> | undefined;
+      return {
+        billId: `${bill.congress}-${bill.type}-${bill.number}`,
+        congress: bill.congress,
+        billType: bill.type,
+        billNumber: bill.number,
+        title: bill.title,
+        latestAction: {
+          text: latestAction?.text as string || '',
+          date: latestAction?.actionDate as string || bill.updateDate as string || ''
+        },
+        // Keep raw fields for debugging
+        type: bill.type,
+        number: bill.number,
+        actionDate: latestAction?.actionDate as string,
+        updateDate: bill.updateDate as string,
+        url: bill.url as string
+      };
+    });
+
+    return {
+      bills,
+      pagination: response.data.pagination
+    };
   } catch (error) {
     console.error('Error fetching bills:', error);
     throw new Error('Failed to fetch bills from Congress.gov API');
@@ -60,7 +91,30 @@ export async function fetchBillDetails(congress: number, billType: string, billN
       }
     });
 
-    return response.data.bill;
+    const bill = response.data.bill;
+    
+    // Map the detailed response to our expected format
+    return {
+      billId: `${bill.congress}-${bill.type}-${bill.number}`,
+      congress: bill.congress,
+      billType: bill.type,
+      billNumber: bill.number,
+      title: bill.title,
+      latestAction: {
+        text: bill.latestAction?.text || '',
+        date: bill.latestAction?.actionDate || bill.updateDate || ''
+      },
+      textVersions: bill.textVersions?.url ? [{
+        url: bill.textVersions.url,
+        format: 'xml'
+      }] : undefined,
+      // Keep raw fields for debugging
+      type: bill.type,
+      number: bill.number,
+      actionDate: bill.latestAction?.actionDate,
+      updateDate: bill.updateDate,
+      url: bill.url
+    };
   } catch (error) {
     console.error('Error fetching bill details:', error);
     throw new Error(`Failed to fetch bill details for ${congress}/${billType}/${billNumber}`);
@@ -130,5 +184,16 @@ function extractTextFromDiv(div: unknown): string {
 }
 
 export function isEnactedBill(bill: Bill): boolean {
-  return bill.latestAction?.text?.includes('Became Public Law') || false;
+  const actionText = bill.latestAction?.text || '';
+  const isEnacted = actionText.includes('Became Public Law') || 
+                   actionText.includes('Signed by President') ||
+                   actionText.includes('Presented to President') ||
+                   actionText.includes('Enacted');
+  
+  // Debug logging for the first few bills
+  if (Math.random() < 0.1) { // Log ~10% of bills for debugging
+    console.log(`Bill ${bill.billId} action: "${actionText}" -> Enacted: ${isEnacted}`);
+  }
+  
+  return isEnacted;
 } 

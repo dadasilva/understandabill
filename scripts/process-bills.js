@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
 require('dotenv').config({ path: '.env.local' });
-const { processNewBills } = require('../dist/lib/bill-processor');
+const { processMostRecentBill } = require('../dist/lib/bill-processor');
 
 async function main() {
   console.log('Starting bill processing...');
   console.log('Time:', new Date().toISOString());
   
   try {
-    const result = await processNewBills();
+    const result = await processMostRecentBill();
     
     console.log('Bill processing completed:');
     console.log('- Processed:', result.processed);

@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "process-bills": "node scripts/process-bills.js"
+    "process-bills": "node scripts/process-bills.js",
+    "seed-topics": "node scripts/seed-topics.js"
   },
   "dependencies": {
     "axios": "^1.10.0",
@@ -20,6 +21,7 @@
     "mongoose": "^8.16.3",
     "next": "15.4.1",
     "node-cron": "^4.2.1",
+    "openai": "^5.9.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "xml2js": "^0.6.2"
@@ -37,6 +39,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.4.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   }
 }

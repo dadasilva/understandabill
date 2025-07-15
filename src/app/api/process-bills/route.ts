@@ -1,17 +1,17 @@
 import { NextResponse } from 'next/server';
-import { processNewBills } from '@/lib/bill-processor';
+import { processMostRecentBill } from '@/lib/bill-processor';
 
 export async function POST() {
   try {
     // In a production app, you'd want to add authentication here
     // For now, we'll allow manual triggering
     
-    console.log('Manual bill processing triggered');
+    console.log('Manual bill processing triggered - processing most recent bill');
     
-    const result = await processNewBills();
+    const result = await processMostRecentBill();
     
     return NextResponse.json({
-      message: 'Bill processing completed',
+      message: 'Most recent bill processing completed',
       result
     });
 
